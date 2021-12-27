@@ -1,0 +1,69 @@
+
+# load recipe to region df
+LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region.csv' AS row
+WITH toInteger(row.recipe_id) AS recipe, row.region AS region
+RETURN recipe, region
+LIMIT 8;
+
+# load ingredient to category df
+LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_category.csv' AS row
+WITH toInteger(row.ingredient_id) AS ingredient_id, row.ingredient_name AS ingredient_name, row.ingredientcategory_name as ingredient_category
+return ingredient_id, ingredient_name, ingredient_category
+LIMIT 5
+
+# for recipe_id to ingredient_id csv
+LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_recipe.csv' AS row
+WITH toInteger(row.recipe_id) as recipe_id, toInteger(row.ingredient_id) as ingredient_id
+return recipe_id, ingredient_id
+LIMIT 5
+
+# for recipe to region csv
+CREATE CONSTRAINT UniqueIngredient ON (i:Ingredient) ASSERT i.ingredient_id IS UNIQUE;
+CREATE CONSTRAINT UniqueRecipe ON (r:Recipe) ASSERT r.recipe_id IS UNIQUE;
+
+# not sure what this does but run it for both tables
+LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_category.csv' AS row
+WITH toInteger(row.ingredient_id) AS ingredient_id, row.ingredient_name as ingredient_name, row.ingredientcategory_name AS ingredient_category
+MERGE (i:Ingredient {ingredient_id: ingredient_id})
+  SET i.ingredient_id = ingredient_id, i.ingredient_name = ingredient_name, i.ingredientcategory_name = ingredient_category
+RETURN count(i);
+
+# check to see if worked
+MATCH (i:Ingredient)
+RETURN i LIMIT 20;
+
+LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region.csv' AS row
+WITH toInteger(row.recipe_id) AS recipe_id, row.region AS region
+MERGE (r:Recipe {recipe_id: recipe_id})
+  SET r.recipe_id = recipe_id, r.region = region
+RETURN count(r);
+
+# check to see if worked
+MATCH (r:Recipe)
+RETURN r LIMIT 20;
+
+
+
+# drop CONSTRAINT
+DROP CONSTRAINT ON (a:Artist) ASSERT a.Name IS UNIQUE
+
+# create relationship
+# this worked...
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_recipe.csv' AS row
+WITH toInteger(row.recipe_id) as recipe_id, toInteger(row.ingredient_id) as ingredient_id, row.ingredient_name as name
+MATCH (i:Ingredient {ingredient_id: ingredient_id})
+MATCH (r:Recipe {recipe_id: recipe_id})
+MERGE (r)-[rel:CONTAINS]->(i)
+RETURN count(rel);
+
+# check with
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+RETURN r, rel, i LIMIT 50;
+
+
+# fun queries
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+WHERE i.ingredientcategory_name in ['herb', 'spice', 'nut/seed/pulse', 'meat'] and r.region =~ "MiddleEastern.*"
+RETURN r, rel, i;
+// return count(r)
