@@ -39,7 +39,7 @@ MERGE (r:Recipe {recipe_id: recipe_id})
 RETURN count(r);
 
 # or if you're loading full cuisine data
-LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region_fixed.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region_clean.csv' AS row
 WITH toInteger(row.recipe_id) AS recipe_id, row.region AS region, row.source as source, row.cuisine as cuisine
 MERGE (r:Recipe {recipe_id: recipe_id})
   SET r.recipe_id = recipe_id, r.region = region, r.source = source, r.cuisine = cuisine
