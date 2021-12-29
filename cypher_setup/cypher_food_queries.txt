@@ -38,6 +38,13 @@ MERGE (r:Recipe {recipe_id: recipe_id})
   SET r.recipe_id = recipe_id, r.region = region
 RETURN count(r);
 
+# if you want to load the full recipe to region data... 
+LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region_fixed.csv' AS row
+WITH toInteger(row.recipe_id) AS recipe_id, row.region AS region, row.source as source, row.cuisine as cuisine
+MERGE (r:Recipe {recipe_id: recipe_id})
+  SET r.recipe_id = recipe_id, r.region = region, r.source = source, r.cuisine = cuisine
+RETURN count(r);
+
 # check to see if worked
 MATCH (r:Recipe)
 RETURN r LIMIT 20;
