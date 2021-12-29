@@ -1,0 +1,52 @@
+# ------------------------------- fun queries -------------------------------
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+WHERE i.ingredientcategory_name in ['herb', 'spice', 'nut/seed/pulse', 'meat'] and r.region =~ "MiddleEastern.*"
+RETURN r, rel, i;
+// return count(r)
+
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+WHERE i.ingredientcategory_name IN ['spice'] and r.region in ['African']
+RETURN COUNT(i) as freq, i.ingredient_name
+ORDER BY freq DESC
+limit 1
+
+ex:
+MATCH (n:Actor)
+RETURN n.name AS name
+UNION ALL
+MATCH (n:Movie)
+RETURN n.title AS name
+
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+WHERE  r.region in ['MiddleEastern']
+RETURN COUNT(i) as freq, i.ingredientcategory_name
+ORDER BY freq DESC
+limit 30
+
+match (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+where i.ingredient_name in ['cilantro', 'parsley', 'mint', 'ginger']
+and r.region = 'Asian'
+return r, rel, i
+
+# combinging queries...
+# grab top two ingredients in asian recipes
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+WHERE r.region = 'Asian'
+WITH count(i) as freq, i.ingredient_name as name
+ORDER BY freq DESC limit 2
+WITH collect(name) as col
+
+# us the output of previous query for where condition
+MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+where i.ingredient_name IN col
+WITH r, rand() AS rand, i as i, rel as rel
+RETURN r, rel, i
+ORDER BY rand LIMIT 100
+
+# i think this is a good way to query recipes that contains
+# a set of ingredients as opposed to showing all recipes that have those ingredients
+match (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
+where exists((r)-[:CONTAINS]->(:Ingredient {ingredient_name:'egg'}))
+and exists((r)-[:CONTAINS]->(:Ingredient {ingredient_name:'herring'}))
+RETURN r, rel, i
+limit 30

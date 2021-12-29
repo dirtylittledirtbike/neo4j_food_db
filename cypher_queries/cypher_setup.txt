@@ -1,9 +1,9 @@
-
+# ------------------------------- SETUP -------------------------------
 # load recipe to region df
 LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region.csv' AS row
 WITH toInteger(row.recipe_id) AS recipe, row.region AS region
 RETURN recipe, region
-LIMIT 8;
+LIMIT 5;
 
 # load ingredient to category df
 LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_category.csv' AS row
@@ -38,7 +38,7 @@ MERGE (r:Recipe {recipe_id: recipe_id})
   SET r.recipe_id = recipe_id, r.region = region
 RETURN count(r);
 
-# if you want to load the full recipe to region data... 
+# or if you're loading full cuisine data
 LOAD CSV WITH HEADERS FROM 'file:///recipe_to_region_fixed.csv' AS row
 WITH toInteger(row.recipe_id) AS recipe_id, row.region AS region, row.source as source, row.cuisine as cuisine
 MERGE (r:Recipe {recipe_id: recipe_id})
@@ -49,13 +49,7 @@ RETURN count(r);
 MATCH (r:Recipe)
 RETURN r LIMIT 20;
 
-
-
-# drop CONSTRAINT
-DROP CONSTRAINT ON (a:Artist) ASSERT a.Name IS UNIQUE
-
-# create relationship
-# this worked...
+# create relationship between ingredient nodes and recipe nodes...
 :auto USING PERIODIC COMMIT 500
 LOAD CSV WITH HEADERS FROM 'file:///ingredient_to_recipe.csv' AS row
 WITH toInteger(row.recipe_id) as recipe_id, toInteger(row.ingredient_id) as ingredient_id, row.ingredient_name as name
@@ -68,9 +62,8 @@ RETURN count(rel);
 MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
 RETURN r, rel, i LIMIT 50;
 
-
-# fun queries
-MATCH (r:Recipe)-[rel:CONTAINS]->(i:Ingredient)
-WHERE i.ingredientcategory_name in ['herb', 'spice', 'nut/seed/pulse', 'meat'] and r.region =~ "MiddleEastern.*"
-RETURN r, rel, i;
-// return count(r)
+# do this if you want to color your nodes by region (need the apoc plugin installed to do)
+MATCH (r:Recipe)
+WITH DISTINCT r.region AS region, collect(DISTINCT r) AS regions
+CALL apoc.create.addLabels(regions, [apoc.text.upperCamelCase(region)]) YIELD node
+RETURN count(*)
