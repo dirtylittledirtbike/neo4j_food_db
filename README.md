@@ -9,4 +9,4 @@
 * play around! checkout neo4j_food_db/cypher_queries/fun_cypher_queries.txt for some example queries. 
 
 
-### original inspiration and data source: http://blog.bruggen.com/2013/12/fascinating-food-networks-in-neo4j.html?m=1 
+### original inspiration and data source: <br>http://blog.bruggen.com/2013/12/fascinating-food-networks-in-neo4j.html?m=1 
