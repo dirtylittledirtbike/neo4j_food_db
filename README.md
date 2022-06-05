@@ -1,4 +1,4 @@
-# using neo4j to create graphical databases of recpipes from multiple online sources.
+# using neo4j to create graphical databases of recipes from multiple online sources.
 ## setup (locally with neo4j desktop)
 * download repository
 * create new project in Neo4j Desktop app
